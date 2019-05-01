@@ -52,4 +52,5 @@ int main()
     {
         std::cout << *e_it << ", ";
     }
+    std::cout << std::endl;
 }
