@@ -25,7 +25,7 @@ class Graph
 
                 bool operator==(const VerticesIterator &vi) const { return __graph_ptr->__vertexes == vi.__graph_ptr->__vertexes && __index == vi.__index; }
                 bool operator!=(const VerticesIterator &vi) const { return !(*this == vi); }
-                VerticesIterator& operator++() { ++__index; }
+                VerticesIterator& operator++() { ++__index; return *this; }
                 VerticesIterator operator++(int) { VerticesIterator temp(*this); ++(*this); return temp; }
                 V& operator*() const { return __graph_ptr->__vertexes[__index]; }
                 V* operator->() const { return &__graph_ptr->__vertexes[__index]; }
@@ -33,7 +33,7 @@ class Graph
 
             private:
                 VerticesIterator(Graph<V, E>* graph, std::size_t current_vertex_id = 0u)
-                    : __graph_ptr(graph), __index(current_vertex_id) {};
+                    : __graph_ptr(graph), __index(current_vertex_id) {}
 
                 Graph<V, E>* __graph_ptr;
                 std::size_t __index{};
@@ -43,7 +43,7 @@ class Graph
         {
             friend class Graph<V, E>;
 
-            public:
+             public:
                 EdgesIterator() = default;
                 ~EdgesIterator() = default;
                 EdgesIterator(const EdgesIterator&) = default;
@@ -56,14 +56,14 @@ class Graph
                 bool operator!=(const EdgesIterator &ei) const { return !(*this == ei); }
                 EdgesIterator& operator++();
                 EdgesIterator operator++(int) { EdgesIterator temp(*this); ++(*this); return temp; }
-                E& operator*() const { return __graph_ptr->__adj[__row][__col].value(); }
+                E& operator*() const { if(__graph_ptr->__adj[__row][__col]) return __graph_ptr->__adj[__row][__col].value(); }
                 E* operator->() const { return &__graph_ptr->__adj[__row][__col].value(); }
                 operator bool() const { return !(*this == __graph_ptr->endEdges()); }
 
             private:
                 EdgesIterator(Graph<V, E>* graph, std::size_t nm_row = 0u, std::size_t nm_col = 0u)
                     : __graph_ptr(graph), __row(nm_row), __col(nm_col) {}
-        
+
                 Graph<V, E>* __graph_ptr;
                 std::size_t __row{};
                 std::size_t __col{};
@@ -92,7 +92,7 @@ class Graph
 
         VerticesIterator begin() { return beginVertices(); }
         VerticesIterator beginVertices() { return VerticesIterator(this); }
-        EdgesIterator beginEdges() { return EdgesIterator(this); } 
+        EdgesIterator beginEdges();
 
         VerticesIterator end() { return endVertices(); }
         VerticesIterator endVertices() { return VerticesIterator(this, __numberOfVertices); }
@@ -121,6 +121,22 @@ auto Graph<V, E>::EdgesIterator::operator++() -> EdgesIterator&
     }
 
     return *this;
+}
+
+template <typename V, typename E>
+auto Graph<V,E>::beginEdges() -> EdgesIterator
+{
+    std::size_t row{0u};
+    std::size_t col{0u};
+    
+    while(row != __numberOfVertices && !__adj[row][col])
+        if(++col >= __numberOfVertices)
+        {
+            ++row;
+            col = 0u;
+        }
+
+    return EdgesIterator(this, row, col);    
 }
 
 template <typename V, typename E>
