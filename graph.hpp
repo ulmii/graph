@@ -86,6 +86,7 @@ class Graph
         std::size_t nrOfVertices() const { return __numberOfVertices; }
         std::size_t nrOfEdges() const { return __numberOfEdges; }
         void printNeighborhoodMatrix() const;
+        V getVertex(std::size_t index) const { return __vertexes[index]; }
 
         VerticesIterator vertex(std::size_t vertex_id) { return VerticesIterator(this, vertex_id); }
         EdgesIterator edge(std::size_t vertex1_id, std::size_t vertex2_id) { return EdgesIterator(this, vertex1_id, vertex2_id); }
