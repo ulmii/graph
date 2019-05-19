@@ -3,65 +3,80 @@
 #include <chrono>
 #include <functional>
 #include <stack>
-
-template <typename V, typename E>
-void DFSRecur(const Graph<V, E> &graph, std::size_t start_idx, std::function<void(const V &)> func)
-{
-    std::vector<bool> visited(graph.nrOfVertices(), false);
-    visited[start_idx] = true;
-
-    std::cout << "DFS starting from point: " << start_idx << std::endl;
-    func(graph.getVertex(start_idx));
-
-    for (int i = 0; i < graph.nrOfVertices(); i++)
-        if (graph.edgeExist(start_idx, i) && !visited[i])
-            DFSUtil(visited, graph, i, func);
-
-    std::cout << std::endl;
-}
-
-template <typename V, typename E>
-void DFSUtil(std::vector<bool> &visited, const Graph<V, E> &graph, std::size_t start_idx, std::function<void(const V &)> func)
-{
-    visited[start_idx] = true;
-    func(graph.getVertex(start_idx));
-
-    for (int i = 0; i < graph.nrOfVertices(); ++i)
-        if (graph.edgeExist(start_idx, i) && !visited[i])
-            DFSUtil(visited, graph, i, func);
-}
+#include <queue>
+#include <set>
 
 template <typename V, typename E>
 void DFS(const Graph<V, E> &graph, std::size_t start_idx, std::function<void(const V &)> func)
 {
-    std::stack<int> s; // Create a stack of ints
+    std::stack<int> s; 
     std::vector<bool> visited(graph.nrOfVertices(), false);
 
-    s.push(start_idx);         // Push the vertex onto the stack
-    visited[start_idx] = true; // Mark this node as visited
+    s.push(start_idx);         
+    visited[start_idx] = true;
 
     std::cout << "DFS starting from index: " << start_idx << std::endl;
 
-    if (start_idx >= graph.nrOfVertices()) // End the function if we're at our destination
+    if (start_idx >= graph.nrOfVertices()) 
     {
         std::cout << std::endl;
         return;
     }
 
-    while (!s.empty()) // While the stack is not empty
+    while (!s.empty()) 
     {
-        int k = s.top(); // Save the top element before popping it off
+        int v = s.top();
         s.pop();
 
-        if (k == graph.nrOfVertices()) // Break out of the loop if we've reached our destination
+        if (v == graph.nrOfVertices())
+            break;
+
+        func(graph.getVertex(v));
+        
+        for (int i = graph.nrOfVertices(); i >= 0; --i)
+        {
+            if (graph.edgeExist(v, i) && !visited[i]) 
+            {
+                s.push(i);
+                visited[i] = true;
+            }
+        }
+    }
+
+    std::cout << std::endl;
+}
+
+template <typename V, typename E>
+void BFS(const Graph<V, E> &graph, std::size_t start_idx, std::function<void(const V &)> func)
+{
+    std::queue<int> s;
+    std::vector<bool> visited(graph.nrOfVertices(), false);
+
+    s.push(start_idx);      
+    visited[start_idx] = true; 
+
+    std::cout << "BFS starting from index: " << start_idx << std::endl;
+
+    if (start_idx >= graph.nrOfVertices())
+    {
+        std::cout << std::endl;
+        return;
+    }
+
+    while (!s.empty()) 
+    {
+        int k = s.front();
+        s.pop();
+
+        if (k == graph.nrOfVertices())
             break;
 
         func(graph.getVertex(k));
-
-        for (int i = graph.nrOfVertices(); i >= 0; --i) // For all adjacent vertices
-            if (graph.edgeExist(k, i) && !visited[i]) // If they're connected and we haven't visited it yet
+        
+        for (int i = graph.nrOfVertices(); i >= 0; --i) 
+            if (graph.edgeExist(k, i) && !visited[i])   
             {
-                s.push(i); // Add it to our stack, and mark that we've visited it
+                s.push(i);
                 visited[i] = true;
             }
     }
@@ -127,23 +142,14 @@ int main()
     });
     std::cout << std::endl;
 
-    DFS<std::string, double>(g, 1u, [](const std::string &v) -> auto {
+    BFS<std::string, double>(g, 3u, [](const std::string &v) -> auto {
         std::cout << v << " ";
     });
     std::cout << std::endl;
 
-    DFS<std::string, double>(g, 2u, [](const std::string &v) -> auto {
-        std::cout << v << " ";
-    });
-    std::cout << std::endl;
+    for(auto dit = g.beginDFS(); dit != g.endDFS(); ++dit)
+    {
+        std::cout << *dit << " " << std::flush;
+    }
 
-    DFS<std::string, double>(g, 3u, [](const std::string &v) -> auto {
-        std::cout << v << " ";
-    });
-    std::cout << std::endl;
-
-    DFS<std::string, double>(g, 4u, [](const std::string &v) -> auto {
-        std::cout << v << " ";
-    });
-    std::cout << std::endl;
 }

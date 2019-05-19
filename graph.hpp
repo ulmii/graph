@@ -1,10 +1,11 @@
-#pragma once
+#pragma (1)
 
 #include <vector>
 #include <optional>
 #include <iostream>
 #include <algorithm>
 #include <optional>
+#include <stack>
 
 template <typename V, typename E>
 class Graph
@@ -56,7 +57,7 @@ class Graph
                 bool operator!=(const EdgesIterator &ei) const { return !(*this == ei); }
                 EdgesIterator& operator++();
                 EdgesIterator operator++(int) { EdgesIterator temp(*this); ++(*this); return temp; }
-                E& operator*() const { if(__graph_ptr->__adj[__row][__col]) return __graph_ptr->__adj[__row][__col].value(); }
+                E& operator*() const { return __graph_ptr->__adj[__row][__col].value(); }
                 E* operator->() const { return &__graph_ptr->__adj[__row][__col].value(); }
                 operator bool() const { return !(*this == __graph_ptr->endEdges()); }
 
@@ -67,6 +68,58 @@ class Graph
                 Graph<V, E>* __graph_ptr;
                 std::size_t __row{};
                 std::size_t __col{};
+        };
+
+        class DFSIterator
+        {
+            friend class Graph<V, E>;
+
+            public:
+                DFSIterator() = default;
+                ~DFSIterator() = default;
+                DFSIterator(const DFSIterator&) = default;
+                DFSIterator(DFSIterator&&) = default;
+
+                DFSIterator& operator=(const DFSIterator&) = default;
+                DFSIterator& operator=(DFSIterator&&) = default;
+
+                bool operator==(const DFSIterator &other) const { return __graph_ptr == other.__graph_ptr && __index == other.__index; }
+                bool operator!=(const DFSIterator &other) const { return !(*this == other); }
+                DFSIterator& operator++()
+                {
+                    for (int i = __graph_ptr->nrOfVertices(); i >= 0; --i)
+                        if (__graph_ptr->edgeExist(__index, i) && !__visited[i])   
+                        {
+                            __stack.push(i);
+                            __visited[i] = true;
+                        }
+
+                    if(!__stack.empty())
+                    {
+                        __index = __stack.top();
+                        __stack.pop();
+                    }
+                    else
+                        __index = __graph_ptr->__numberOfVertices;
+
+                    return *this;
+                }
+                DFSIterator& operator++(int) { DFSIterator temp(*this); ++(*this); return temp; }
+                V& operator*() const { return __graph_ptr->__vertexes[__index]; }
+                V* operator->() const { return &__graph_ptr->__vertexes[__index]; }
+                operator bool() const { return !(*this == __graph_ptr->endDFS()); }
+
+            private:
+                DFSIterator(Graph<V, E> *graph, std::size_t index)
+                    : __graph_ptr(graph), __index(index)
+                    {
+                        __visited = std::vector<bool>(graph->__numberOfVertices, false);
+                        __visited[index] = true;
+                    }
+                Graph<V, E> *__graph_ptr;
+                std::size_t __index{};
+                std::stack<int> __stack;
+                std::vector<bool> __visited;
         };
 
     public:
@@ -98,6 +151,9 @@ class Graph
         VerticesIterator end() { return endVertices(); }
         VerticesIterator endVertices() { return VerticesIterator(this, __numberOfVertices); }
         EdgesIterator endEdges() { return EdgesIterator(this, __numberOfVertices, 0u); }
+
+        DFSIterator beginDFS(std::size_t index = 0u) { return DFSIterator(this, index); }
+        DFSIterator endDFS() { return DFSIterator(this, __numberOfVertices); }
         
     private:
         std::vector<std::vector<std::optional<E>>> __adj;
