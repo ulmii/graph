@@ -151,5 +151,12 @@ int main()
     {
         std::cout << *dit << " " << std::flush;
     }
+    std::cout << std::endl;
+
+    for(auto dit = g.beginBFS(3u); dit != g.endBFS(); ++dit)
+    {
+        std::cout << *dit << " " << std::flush;
+    }
+    std::cout << std::endl;
 
 }

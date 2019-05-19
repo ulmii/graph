@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <optional>
 #include <stack>
+#include <queue>
 
 template <typename V, typename E>
 class Graph
@@ -85,25 +86,7 @@ class Graph
 
                 bool operator==(const DFSIterator &other) const { return __graph_ptr == other.__graph_ptr && __index == other.__index; }
                 bool operator!=(const DFSIterator &other) const { return !(*this == other); }
-                DFSIterator& operator++()
-                {
-                    for (int i = __graph_ptr->nrOfVertices(); i >= 0; --i)
-                        if (__graph_ptr->edgeExist(__index, i) && !__visited[i])   
-                        {
-                            __stack.push(i);
-                            __visited[i] = true;
-                        }
-
-                    if(!__stack.empty())
-                    {
-                        __index = __stack.top();
-                        __stack.pop();
-                    }
-                    else
-                        __index = __graph_ptr->__numberOfVertices;
-
-                    return *this;
-                }
+                DFSIterator& operator++();
                 DFSIterator& operator++(int) { DFSIterator temp(*this); ++(*this); return temp; }
                 V& operator*() const { return __graph_ptr->__vertexes[__index]; }
                 V* operator->() const { return &__graph_ptr->__vertexes[__index]; }
@@ -119,6 +102,40 @@ class Graph
                 Graph<V, E> *__graph_ptr;
                 std::size_t __index{};
                 std::stack<int> __stack;
+                std::vector<bool> __visited;
+        };
+
+        class BFSIterator
+        {
+            friend class Graph<V, E>;
+
+            public:
+                BFSIterator() = default;
+                ~BFSIterator() = default;
+                BFSIterator(const BFSIterator&) = default;
+                BFSIterator(BFSIterator&&) = default;
+
+                BFSIterator& operator=(const BFSIterator&) = default;
+                BFSIterator& operator=(BFSIterator&&) = default;
+
+                bool operator==(const BFSIterator &other) const { return __graph_ptr == other.__graph_ptr && __index == other.__index; }
+                bool operator!=(const BFSIterator &other) const { return !(*this == other); }
+                BFSIterator& operator++();
+                BFSIterator& operator++(int) { BFSIterator temp(*this); ++(*this); return temp; }
+                V& operator*() const { return __graph_ptr->__vertexes[__index]; }
+                V* operator->() const { return &__graph_ptr->__vertexes[__index]; }
+                operator bool() const { return !(*this == __graph_ptr->endDFS()); }
+
+            private:
+                BFSIterator(Graph<V, E> *graph, std::size_t index)
+                    : __graph_ptr(graph), __index(index)
+                    {
+                        __visited = std::vector<bool>(graph->__numberOfVertices, false);
+                        __visited[index] = true;
+                    }
+                Graph<V, E> *__graph_ptr;
+                std::size_t __index{};
+                std::queue<int> __queue;
                 std::vector<bool> __visited;
         };
 
@@ -154,6 +171,9 @@ class Graph
 
         DFSIterator beginDFS(std::size_t index = 0u) { return DFSIterator(this, index); }
         DFSIterator endDFS() { return DFSIterator(this, __numberOfVertices); }
+
+        BFSIterator beginBFS(std::size_t index = 0u) { return BFSIterator(this, index); }
+        BFSIterator endBFS() { return BFSIterator(this, __numberOfVertices); }
         
     private:
         std::vector<std::vector<std::optional<E>>> __adj;
@@ -176,6 +196,48 @@ auto Graph<V, E>::EdgesIterator::operator++() -> EdgesIterator&
                 break;
         }
     }
+
+    return *this;
+}
+
+template <typename V, typename E>
+auto Graph<V, E>::DFSIterator::operator++() -> DFSIterator&
+{   
+    for (int i = __graph_ptr->nrOfVertices(); i >= 0; --i)
+        if (__graph_ptr->edgeExist(__index, i) && !__visited[i])   
+        {
+            __stack.push(i);
+            __visited[i] = true;
+        }
+
+    if(!__stack.empty())
+    {
+        __index = __stack.top();
+        __stack.pop();
+    }
+    else
+        __index = __graph_ptr->__numberOfVertices;
+
+    return *this;
+}
+
+template <typename V, typename E>
+auto Graph<V, E>::BFSIterator::operator++() -> BFSIterator&
+{   
+    for (int i = __graph_ptr->nrOfVertices(); i >= 0; --i)
+        if (__graph_ptr->edgeExist(__index, i) && !__visited[i])   
+        {
+            __queue.push(i);
+            __visited[i] = true;
+        }
+
+    if(!__queue.empty())
+    {
+        __index = __queue.front();
+        __queue.pop();
+    }
+    else
+        __index = __graph_ptr->__numberOfVertices;
 
     return *this;
 }
