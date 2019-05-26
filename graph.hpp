@@ -162,11 +162,11 @@ class Graph
         EdgesIterator edge(std::size_t vertex1_id, std::size_t vertex2_id) { return EdgesIterator(this, vertex1_id, vertex2_id); }
 
         VerticesIterator begin() { return beginVertices(); }
-        VerticesIterator beginVertices() { return VerticesIterator(this); }
-        EdgesIterator beginEdges();
-
         VerticesIterator end() { return endVertices(); }
+        VerticesIterator beginVertices() { return VerticesIterator(this); }
         VerticesIterator endVertices() { return VerticesIterator(this, __numberOfVertices); }
+
+        EdgesIterator beginEdges();
         EdgesIterator endEdges() { return EdgesIterator(this, __numberOfVertices, 0u); }
 
         DFSIterator beginDFS(std::size_t index = 0u) { return DFSIterator(this, index); }
@@ -224,7 +224,7 @@ auto Graph<V, E>::DFSIterator::operator++() -> DFSIterator&
 template <typename V, typename E>
 auto Graph<V, E>::BFSIterator::operator++() -> BFSIterator&
 {   
-    for (int i = __graph_ptr->nrOfVertices(); i >= 0; --i)
+    for (int i = 0; i < __graph_ptr->nrOfVertices(); ++i)
         if (__graph_ptr->edgeExist(__index, i) && !__visited[i])   
         {
             __queue.push(i);
