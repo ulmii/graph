@@ -1,88 +1,11 @@
-#include "graph.hpp"
-#include <string>
-#include <chrono>
+#include <iostream>
 #include <functional>
-#include <stack>
-#include <queue>
-#include <set>
+#include <string>
 
-template <typename V, typename E>
-void DFS(const Graph<V, E> &graph, std::size_t start_idx, std::function<void(const V &)> func)
-{
-    std::stack<int> s; 
-    std::vector<bool> visited(graph.nrOfVertices(), false);
+#include "Graph.hpp"
+#include "dijkstra.hpp"
 
-    s.push(start_idx);         
-    visited[start_idx] = true;
-
-    std::cout << "DFS starting from index: " << start_idx << std::endl;
-
-    if (start_idx >= graph.nrOfVertices()) 
-    {
-        std::cout << std::endl;
-        return;
-    }
-
-    while (!s.empty()) 
-    {
-        int v = s.top();
-        s.pop();
-
-        if (v == graph.nrOfVertices())
-            break;
-
-        func(graph.getVertex(v));
-        
-        for (int i = graph.nrOfVertices(); i >= 0; --i)
-        {
-            if (graph.edgeExist(v, i) && !visited[i]) 
-            {
-                s.push(i);
-                visited[i] = true;
-            }
-        }
-    }
-
-    std::cout << std::endl;
-}
-
-template <typename V, typename E>
-void BFS(const Graph<V, E> &graph, std::size_t start_idx, std::function<void(const V &)> func)
-{
-    std::queue<int> s;
-    std::vector<bool> visited(graph.nrOfVertices(), false);
-
-    s.push(start_idx);      
-    visited[start_idx] = true; 
-
-    std::cout << "BFS starting from index: " << start_idx << std::endl;
-
-    if (start_idx >= graph.nrOfVertices())
-    {
-        std::cout << std::endl;
-        return;
-    }
-
-    while (!s.empty()) 
-    {
-        int k = s.front();
-        s.pop();
-
-        if (k == graph.nrOfVertices())
-            break;
-
-        func(graph.getVertex(k));
-        
-        for (int i = graph.nrOfVertices(); i >= 0; --i) 
-            if (graph.edgeExist(k, i) && !visited[i])   
-            {
-                s.push(i);
-                visited[i] = true;
-            }
-    }
-
-    std::cout << std::endl;
-}
+using namespace std;
 
 int main()
 {
@@ -105,58 +28,103 @@ int main()
     }
 
     g.insertEdge(0, 2, 4.);
-
     std::cout << (g.removeVertex(1) ? "Udalo sie" : "Nie udalo sie") << std::endl;
     std::cout << (g.removeEdge(2, 2) ? "Udalo sie" : "Nie udalo sie") << std::endl;
     std::cout << (g.removeEdge(2, 3) ? "Udalo sie" : "Nie udalo sie") << std::endl;
     std::cout << (g.removeEdge(4, 3) ? "Udalo sie" : "Nie udalo sie") << std::endl;
-
     std::cout << "Nr of vertices: " << g.nrOfVertices() << std::endl;
     std::cout << "Nr of edges: " << g.nrOfEdges() << std::endl;
     std::cout << std::endl;
-
     g.printNeighborhoodMatrix();
-
     std::cout << std::endl;
     std::cout << "Vertices data:" << std::endl;
-
     for (auto v_it = g.beginVertices(); v_it != g.endVertices(); ++v_it)
     {
         std::cout << *v_it << ", ";
     }
-
     std::cout << std::endl
               << std::endl;
-
+    for (auto &v : g)
+    {
+        std::cout << v << ", ";
+    }
+    std::cout << std::endl
+              << std::endl;
     std::cout << "Edges data:" << std::endl;
-
     for (auto e_it = g.beginEdges(); e_it != g.endEdges(); ++e_it)
     {
         std::cout << *e_it << ", ";
     }
+
+    std::cout << std::endl
+              << std::endl;
+    std::cout << "DFS vertices data (begin from 1):" << std::endl;
+    for (auto dfs_it = g.beginDFS(1); dfs_it != g.endDFS(); ++dfs_it)
+    {
+        std::cout << *dfs_it << ", ";
+    }
+    std::cout << std::endl
+              << std::endl;
+    std::cout << "DFS vertices data (begin from 3):" << std::endl;
+    for (auto dfs_it = g.beginDFS(3); dfs_it != g.endDFS(); ++dfs_it)
+    {
+        std::cout << *dfs_it << ", ";
+    }
     std::cout << std::endl
               << std::endl;
 
-    DFS<std::string, double>(g, 0u, [](const std::string &v) -> auto {
-        std::cout << v << " ";
-    });
-    std::cout << std::endl;
-
-    BFS<std::string, double>(g, 3u, [](const std::string &v) -> auto {
-        std::cout << v << " ";
-    });
-    std::cout << std::endl;
-
-    for(auto dit = g.beginDFS(); dit != g.endDFS(); ++dit)
+    std::cout << std::endl
+              << std::endl;
+    std::cout << "BFS vertices data (begin from 1):" << std::endl;
+    for (auto dfs_it = g.beginBFS(1); dfs_it != g.endBFS(); ++dfs_it)
     {
-        std::cout << *dit << " " << std::flush;
+        std::cout << *dfs_it << ", ";
+    }
+    std::cout << std::endl
+              << std::endl;
+    std::cout << "BFS vertices data (begin from 3):" << std::endl;
+    for (auto dfs_it = g.beginBFS(3); dfs_it != g.endBFS(); ++dfs_it)
+    {
+        std::cout << *dfs_it << ", ";
+    }
+    std::cout << std::endl
+              << std::endl;
+
+    auto [shortest_path_distance, shortest_path] = dijkstra<std::string, double>(g, 2u, 4u, [](const double &e) -> double { return e; });
+    std::cout << "Distance from 2 to 4: " << shortest_path_distance << std::endl;
+    std::cout << "Path from 2 to 4:" << std::endl;
+    for(auto &v_id : shortest_path)
+    {
+    std::cout << v_id << ", ";
     }
     std::cout << std::endl;
 
-    for(auto dit = g.beginBFS(3u); dit != g.endBFS(); ++dit)
+    std::tie(shortest_path_distance, shortest_path) = dijkstra<std::string, double>(g, 1u, 0u, [](const double &e) -> double { return e; });
+    std::cout << "Distance from 1 to 0: " << shortest_path_distance << std::endl;
+    std::cout << "Path from 1 to 0:" << std::endl;
+    for(auto &v_id : shortest_path)
     {
-        std::cout << *dit << " " << std::flush;
+    std::cout << v_id << ", ";
     }
     std::cout << std::endl;
 
+    std::tie(shortest_path_distance, shortest_path) = dijkstra<std::string, double>(g, 3u, 0u, [](const double &e) -> double { return e; });
+    std::cout << "Distance from 3 to 0: " << shortest_path_distance << std::endl;
+    std::cout << "Path from 3 to 0:" << std::endl;
+    for(auto &v_id : shortest_path)
+    {
+    std::cout << v_id << ", ";
+    }
+    std::cout << std::endl;
+
+    std::tie(shortest_path_distance, shortest_path) = dijkstra<std::string, double>(g, 3u, 1u, [](const double &e) -> double { return e; });
+    std::cout << "Distance from 3 to 1: " << shortest_path_distance << std::endl;
+    std::cout << "Path from 3 to 1:" << std::endl;
+    for(auto &v_id : shortest_path)
+    {
+    std::cout << v_id << ", ";
+    }
+    std::cout << std::endl;
+
+    return 0;
 }

@@ -1,4 +1,4 @@
-#pragma (1)
+#pragma once
 
 #include <vector>
 #include <optional>
@@ -157,6 +157,7 @@ class Graph
         std::size_t nrOfEdges() const { return __numberOfEdges; }
         void printNeighborhoodMatrix() const;
         V getVertex(std::size_t index) const { return __vertexes[index]; }
+        E getEdge(std::size_t index1, std::size_t index2) const { return __adj[index1][index2].value(); }
 
         VerticesIterator vertex(std::size_t vertex_id) { return VerticesIterator(this, vertex_id); }
         EdgesIterator edge(std::size_t vertex1_id, std::size_t vertex2_id) { return EdgesIterator(this, vertex1_id, vertex2_id); }
